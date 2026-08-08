@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "plugins": ["react", "typescript", "jsx_a11y"],
+  "env": {
+    "browser": true
+  },
+  "ignorePatterns": ["dist/**", "storybook-static/**", "node_modules/**"]
+}

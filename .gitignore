@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+storybook-static/
+
+# logs & misc
+*.log
+.DS_Store
+*.local
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
