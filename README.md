@@ -49,8 +49,11 @@ import 'motion-ui-lib/styles.css';
 ```
 src/
 ├── components/     # 动效组件，组件与 stories 就近存放
-│   └── AnimateButton/
+│   ├── AnimateButton/
+│   ├── SplitCardStack/   # 三阶段卡片交互：散列堆叠 → 点击收拢抽入 → 详情浏览
+│   └── ui/               # shadcn/ui 基础组件（button 等）
 ├── hooks/          # 动画通用自定义 hooks
+├── lib/            # cn() 等通用工具
 ├── utils/          # 动画工具、缓动配置
 └── index.ts        # 统一导出入口
 ```
