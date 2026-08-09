@@ -1,6 +1,6 @@
 ---
 name: animation-dev-lessons
-description: framer-motion 动画组件开发复盘 —— 实际犯过的技术错误与必须注意的点（animate prop keyframes 去重、ResizeObserver 尺寸回调、CSS 高度过渡与滚动定位、运算符优先级、分支顺序等）
+description: framer-motion 动画组件开发复盘 —— 实际犯过的技术错误与必须注意的点（animate prop keyframes 去重、ResizeObserver 尺寸回调、CSS 高度过渡与滚动定位、运算符优先级、分支顺序、whileHover 与 useAnimation controls 分层等）
 ---
 
 # Animation Dev Lessons — 动画组件开发复盘
@@ -22,7 +22,7 @@ return (v - Math.floor(v)) * 2 - 1;
 ### 2. 不能用 `motion.div` 的 `animate` prop 触发"必须每次重放"的动画
 **原因**：framer-motion 的 `animate` prop 对目标值做**去重比较**——keyframes 数组走 `shallowCompare`（逐元素 `===`），普通值走 `!==`。**当目标与上次相同（含往返场景：A→B→A）时不重触发动画**。所以"切下一页 → 立即切回 → 再切"这类**往返切换**，第二次动画不播放，第三次才生效。
 **修复**：改用 `useAnimation()` + 显式 `controls.start(target)`——`controls.start` 是命令式调用，**无条件触发**（绕开 target 去重）。配合 `animateKey`（每次切换递增的 state）+ `useEffect([animateKey])`；目标值经 `ref` 读取最新，避免无关 render 触发重放。首帧用 `controls.set()` 直接放置（等价 `initial={false}`）。
-**注意**：`controls.start` 与 `whileHover`/`whileTap` 手势可共存；组件级 `transition` prop 仍作用于 controls 动画。
+**注意**：`controls.start` 与 `whileHover`/`whileTap` 手势**不要放在同一元素**——controls 接管后手势退出不还原（见错误 9）；手势缩放应放内层元素，外层只做 controls 动画。组件级 `transition` prop 仍作用于 controls 动画。
 
 ### 3. ResizeObserver 对"任何尺寸变化"都回调：动画被反复重启
 **原因**：`ResizeObserver` 在元素宽、高任一变化时都会回调。若容器高度在动画期间变化（如从内容高收拢到视口高），回调**逐帧触发**；回调里若无条件 `setState`/递增动画键，动画会被反复重启——表现是"动画特别慢 / 永远收不完"，而且只在"容器尺寸变化的那次切换"出现（尺寸不变的切换正常）——**这个不对称性是定位线索**。
@@ -52,7 +52,13 @@ return (v - Math.floor(v)) * 2 - 1;
 - keyframes 数组可用 `null` 首元素表示"从当前值开始"：`[null, a, b]`；TS 下需确认目标类型与 `TargetAndTransition` 匹配（必要时给 pose 对象显式类型标注）
 - `zIndex` 是离散值：切换时瞬变（不做插值），用于层级切换没问题
 
-### 9. 工具链：JSON 重复键 / 批量编辑原子性 / lint 规则名
+### 9. `whileHover` 与 `useAnimation` controls 同元素：hover 退出不还原
+**现象**：卡片 hover 放大（`scale: 1.03`）后，鼠标移开**不回弹**，一直保持放大态。
+**根因**：`whileHover`/`whileTap` 手势与 `animate={controls}`（`useAnimation`）放在**同一个元素**上时互相干扰——`controls.start()` 接管元素动画后，手势退出的回退目标丢失/被压制，scale 卡在放大态。
+**修复**：手势与位置动画**分层**——外层 `motion.div` 只挂 `animate={controls}`（位置/旋转/缩放等 pose 动画），内层再包一个 `motion.div`（`h-full w-full`）承载 `whileHover`/`whileTap` 缩放；内层无 controls 接管，hover 退出能正常回弹到 scale 1。
+**验证**：storybook 里 hover 进出卡片，确认放大后能还原；typecheck + lint 通过。
+
+### 10. 工具链：JSON 重复键 / 批量编辑原子性 / lint 规则名
 - JSON 配置文件（`.oxlintrc.json` 等）出现**重复键**时后者静默覆盖前者，配置"没生效"——检查无重复键
 - 批量编辑工具（`multi_edit`）是原子的：任一处匹配失败则**整个调用不落盘**——先读取准确文本再改
 - oxlint 规则名用**下划线**前缀：`jsx_a11y/label-has-associated-control`（不是 `jsx-a11y/...`）；framer 的 `motion.*` 组件会被 `label-has-associated-control` 误报，组件库无表单可关闭该规则
@@ -61,6 +67,7 @@ return (v - Math.floor(v)) * 2 - 1;
 
 - **framer-motion keyframes**：`[null, a, b]` 首元素 null = 从当前值开始；`times` 数组长度与 keyframes 一致；keyframes 目标会被 `shallowCompare` 去重（见错误 2）
 - **动画触发架构**：所有"必须每次重放"的动画走 `animateKey` + `useAnimation`；不要把触发寄托在 `animate` prop 的 target 比较上
+- **手势与 controls 分层**：`animate={controls}` 的元素不要再挂 `whileHover`/`whileTap`——hover 退出会不还原（见错误 9）；手势缩放放内层元素
 - **ResizeObserver 测量**：用于响应式尺寸（子元素 = 容器宽度比例）时只监听宽度变化驱动更新；注意高度变化也会触发回调（见错误 3）
 - **确定性伪随机**（正弦散列 `scatter(seed)`）：相同 seed 恒定输出，避免重渲染时布局跳动；`Math.random()` 会导致布局每帧乱跳
 - **两态高度与滚动策略**：展开态容器高度 = 内容总高（可滚动）、收拢态 = 视口高度（不滚动、内容居中）；两态切换时高度不做 CSS 过渡（见错误 4）

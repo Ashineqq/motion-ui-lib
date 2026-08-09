@@ -227,10 +227,16 @@ function CardMotion({
       }}
       animate={controls}
       transition={{ duration, ease: EASINGS.smooth, times: [0, 0.4, 1] }}
-      whileHover={mode === 'spread' ? { scale: 1.03, transition: { duration: 0.25 } } : undefined}
-      whileTap={mode === 'spread' ? { scale: 0.98 } : undefined}
     >
-      <CardFace title={card.title} body={card.body} extra={card.extra} showDetail={isActive} />
+      {/* hover/tap 缩放放在内层：与外层 useAnimation controls 分离。
+          若与外层 animate={controls} 同元素，controls 接管后手势退出不再回弹（scale 卡在放大态） */}
+      <motion.div
+        className="h-full w-full"
+        whileHover={mode === 'spread' ? { scale: 1.03, transition: { duration: 0.25 } } : undefined}
+        whileTap={mode === 'spread' ? { scale: 0.98 } : undefined}
+      >
+        <CardFace title={card.title} body={card.body} extra={card.extra} showDetail={isActive} />
+      </motion.div>
     </motion.div>
   );
 }
@@ -315,8 +321,8 @@ export function SplitCardStack({
 
   const activeIndex = cards.findIndex((c) => c.id === activeId);
 
-  // 动画时长：统一 0.9s（入场收拢 / 复位散开 / 阶段3切换保持同一平缓节奏）
-  const animDuration = 0.9;
+  // 动画时长：统一 1.6s（入场收拢 / 复位散开 / 阶段3切换保持同一平缓节奏）
+  const animDuration = 1;
 
   const handleOpen = (id: string, side: Side) => {
     if (mode !== 'spread') return;
@@ -474,7 +480,7 @@ export function SplitCardStack({
         <motion.aside
           initial={{ opacity: 0, x: 16 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.9, ease: EASINGS.smooth, delay: 0.2 }}
+          transition={{ duration: animDuration, ease: EASINGS.smooth, delay: 0.2 }}
           className="absolute top-1/2 right-6 z-[60] flex -translate-y-1/2 flex-col items-center gap-3"
           aria-label="卡片浏览控制面板"
         >
