@@ -1,3 +1,4 @@
+import { useDebounceFn, useThrottleFn } from 'ahooks';
 import { motion, useAnimation } from 'framer-motion';
 import type { TargetAndTransition } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
@@ -273,6 +274,10 @@ export function SplitCardStack({
   const [animateKey, setAnimateKey] = useState(0);
   const bumpAnimate = () => setAnimateKey((k) => k + 1);
 
+  // 防抖：容器宽度变化逐帧上报，仅在宽度稳定后再重放卡片动画。
+  // 不加防抖时，拖拽窗口宽度每变 1px 都会 bumpAnimate 一次（重跑全部卡片动画）
+  const { run: debouncedBump } = useDebounceFn(bumpAnimate, { wait: 150 });
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -283,19 +288,28 @@ export function SplitCardStack({
       // 会逐帧触发 ResizeObserver，若不拦截会导致卡片动画被反复重启、永远收不完
       if (w !== lastWidthRef.current) {
         lastWidthRef.current = w;
-        bumpAnimate();
+        debouncedBump();
       }
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- debouncedBump 为 ahooks 稳定引用
   }, []);
 
+  // 节流：window resize 以 ~60fps 触发，节流后视口高度最多每 100ms 同步一次
+  // （leading 保证拖拽首帧立即生效），避免每次 resize 都触发容器重渲染
+  const { run: throttledSetViewport } = useThrottleFn(
+    (h: number) => setViewportHeight(h),
+    { wait: 100, leading: true },
+  );
+
   useEffect(() => {
-    const onResize = () => setViewportHeight(window.innerHeight);
+    const onResize = () => throttledSetViewport(window.innerHeight);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- throttledSetViewport 为 ahooks 稳定引用
   }, []);
 
   // 解析卡片尺寸：未显式传入时，宽 = 组件宽 50%（测量前用 360 兜底），高 = 宽 3/4（4:3）

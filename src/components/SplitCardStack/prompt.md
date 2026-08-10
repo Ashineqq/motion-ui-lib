@@ -1,6 +1,6 @@
 # SplitCardStack — 卡片三阶段交互组件（最终实现规格）
 
-使用 React + shadcn/ui + Tailwind CSS + framer-motion 实现的卡片交互组件。整体分为三个交互阶段，深色舞台背景、米白卡片、复古衬线标题，简约高级质感。纯前端动画，无后端接口。
+使用 React + shadcn/ui + Tailwind CSS + framer-motion + ahooks 实现的卡片交互组件。整体分为三个交互阶段，深色舞台背景、米白卡片、复古衬线标题，简约高级质感。纯前端动画，无后端接口。
 
 ## 通用规格
 
