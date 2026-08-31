@@ -29,7 +29,15 @@ export default defineConfig({
       fileName: () => 'index.es.js',
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime', 'framer-motion'],
+      external: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        'framer-motion',
+        'three',
+        '@react-three/fiber',
+        '@react-three/drei',
+      ],
       output: {
         assetFileNames: 'motion-ui.css',
       },

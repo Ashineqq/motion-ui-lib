@@ -14,3 +14,18 @@ export type { FeatureSectionData, FeatureShowcaseProps } from './components/Feat
 
 export { EASINGS } from './utils/easings';
 export type { EasingName } from './utils/easings';
+
+export { DriftingIntentCard } from './components/DriftingIntentCard';
+export type {
+  DriftingIntentCardProps,
+  DriftItem,
+  DriftDensity,
+  ReduceMotionMode,
+} from './components/DriftingIntentCard';
+
+export { GlobeAnimation } from './components/GlobeAnimation';
+export type {
+  GlobeAnimationProps,
+  GlobeDialogCard,
+  GlobeReduceMotionMode,
+} from './components/GlobeAnimation';
