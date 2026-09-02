@@ -36,7 +36,8 @@ export function DialogOverlay({ spot, visible, active, card }: DialogOverlayProp
       <motion.div
         initial={active ? { opacity: 0, scale: 0.85 } : false}
         animate={{
-          opacity: visible,
+          // active 前完全隐藏（透明度 0），active 触发 spring 弹入（与 PersonMarker 门槛一致）
+          opacity: active ? visible : 0,
           scale: active ? 1 : 0.85,
         }}
         transition={

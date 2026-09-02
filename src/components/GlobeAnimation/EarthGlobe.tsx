@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { LAND_POINTS } from './worldData';
@@ -61,19 +61,44 @@ export function EarthGlobe({
     return new Float32Array(arr);
   }, []);
 
-  // 每帧把 uSize 更新为 landDotSize * dpr，保证 2x 屏下圆点像素尺寸不缩小。
-  useFrame(() => {
-    const mat = materialRef.current;
-    if (mat) mat.uniforms.uSize.value = landDotSize * dpr;
-  });
+  // 颜色缓存（避免每帧解析颜色字符串）
+  const color = useMemo(() => new THREE.Color(landColor), [landColor]);
 
-  // 颜色 / 整体透明度随 props 变化同步到着色器 uniform。
-  useEffect(() => {
+  // 每帧把 uSize / uColor / uOpacity 同步到着色器 uniform：
+  // - 不用 useEffect（其触发时机可能早于 R3F 挂载 materialRef，导致 uniform
+  //   永远停在初始值——opacity 从 0 淡入时地球会一直不显示）；
+  // - useFrame 回调在 R3F 中每次渲染都持有最新闭包，props 永远是最新的。
+  useFrame((state) => {
     const mat = materialRef.current;
     if (!mat) return;
-    mat.uniforms.uColor.value.set(landColor);
+    // 调试钩子：GPU 提交统计
+    if ((window as unknown as { __dump?: boolean }).__dump) {
+      console.info(
+        '[RND] points=' +
+          state.gl.info.render.points +
+          ' calls=' +
+          state.gl.info.render.calls +
+          ' triangles=' +
+          state.gl.info.render.triangles,
+      );
+    }
+    mat.uniforms.uSize.value = landDotSize * dpr;
+    mat.uniforms.uColor.value.copy(color);
     mat.uniforms.uOpacity.value = opacity;
-  }, [landColor, opacity]);
+    // 调试钩子：window.__dump=true 时打印真实 uniform 值
+    if ((window as unknown as { __dump?: boolean }).__dump) {
+      console.info(
+        '[DBG] opacity=' +
+          opacity +
+          ' uOpacity=' +
+          mat.uniforms.uOpacity.value +
+          ' uSize=' +
+          mat.uniforms.uSize.value +
+          ' visible=' +
+          materialRef.current.visible,
+      );
+    }
+  });
 
   return (
     <points frustumCulled={false}>

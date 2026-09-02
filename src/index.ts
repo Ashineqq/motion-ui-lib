@@ -29,3 +29,9 @@ export type {
   GlobeDialogCard,
   GlobeReduceMotionMode,
 } from './components/GlobeAnimation';
+
+export { GlobeScrollStory } from './components/GlobeScrollStory';
+export type { GlobeScrollStoryProps } from './components/GlobeScrollStory';
+
+export { BirdScrollStory } from './components/BirdScrollStory';
+export type { BirdScrollStoryProps, BirdPose } from './components/BirdScrollStory';

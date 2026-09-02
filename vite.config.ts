@@ -37,6 +37,8 @@ export default defineConfig({
         'three',
         '@react-three/fiber',
         '@react-three/drei',
+        'gsap',
+        'gsap/ScrollTrigger',
       ],
       output: {
         assetFileNames: 'motion-ui.css',
