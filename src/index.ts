@@ -33,5 +33,23 @@ export type {
 export { GlobeScrollStory } from './components/GlobeScrollStory';
 export type { GlobeScrollStoryProps } from './components/GlobeScrollStory';
 
-export { BirdScrollStory } from './components/BirdScrollStory';
-export type { BirdScrollStoryProps, BirdPose } from './components/BirdScrollStory';
+export { ScrollCoverStack } from './components/ScrollCoverStack';
+export type { ScrollCoverStackProps, CoverPage } from './components/ScrollCoverStack';
+
+export { Preloader } from './components/Preloader';
+export type { PreloaderProps } from './components/Preloader';
+
+export { OrbitGallery } from './components/OrbitGallery';
+export type {
+  OrbitGalleryProps,
+  OrbitItem,
+  OrbitGalleryDirection,
+} from './components/OrbitGallery';
+
+export { TrustedByMarquee } from './components/TrustedByMarquee';
+export type {
+  TrustedByMarqueeProps,
+  LogoMarqueeItem,
+  TrustedByDirection,
+  TrustedByReduceMotionMode,
+} from './components/TrustedByMarquee';

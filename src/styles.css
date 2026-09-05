@@ -43,3 +43,13 @@
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
 }
+
+/* ---- TrustedByMarquee：无缝向左滚动（轨道内放两份内容，平移 -50% 即一轮） ---- */
+@keyframes trusted-by-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
